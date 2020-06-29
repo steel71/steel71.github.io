@@ -1,0 +1,53 @@
+<!DOCTYPE html>
+<html>
+	<head>
+		<meta charset="UTF-8">
+		<title>DIY Ender 3 ABL with inductive sensor</title>
+		<meta name="description"content="DIY Ender 3 ABL with inductive sensor">
+		<meta name="viewport" content="width=device-width, initial-scale=1.0">
+		<link rel="stylesheet" href="https://maxcdn.bootstrapcdn.com/bootstrap/3.3.7/css/bootstrap.min.css">
+		<link href="../index.css" rel="stylesheet"> 
+		<link href="https://fonts.googleapis.com/css?family=Lato" rel="stylesheet"> 
+	</head>
+
+	<body>
+		<div id="header">
+			<div id="textbox">
+				<p class="aligncenter"><a href="../index.html">HOME</a></p>
+				<p class="aligncenter">DIY Ender 3 ABL with inductive sensor</p>
+				<p class="alignright"></p></center>
+			</div>
+			<div style="clear: both;"></div>
+		</div>
+
+		<div class="projectbox">
+			<p>In this guide I will explain how to add an inductive sensor for Z axis homing to an Ender 3 printer</p>
+			<p>For this project you will need:<br />* an inductive sensor<br />* an NPN BJT (transistor) such as 2n2222 or 2n2222a<br />* a 20 mm (or greater) female-to-female dounpont cable or 2 female-to-male doupont cables<br />* some cables to solder<br />* 2 resistors (I will explain which ones)<br />* not needed but recommended: a multimeter</p>
+			<p>the sensor I used is the first that I found on ebay: an LJ12A3-4-Z/BX, but you can buy any NPN sensor that works with 24V and has a detection distance equal or greater than 4mm if you want to print the "Ender 3" bed surface instead of printing directly on the aluminium surface.</p>
+			<p>The sensor comes with 3 cables: <br />* Brown cable: 6-36V (ender 3 psu gives 24V, so it's ok)<br />* Blue cable: GND<br />* Black cable: signal</p>
+			<p>Before starting to work with the black cable, check if the sensor works by plugging the brown cable to one of the 2 available "V+" outs in the PSU, and do the same with the blue one, which must be wired to one of the 2 available "V-" outs.<br />WARNING: when working with the power supply, make sure the power cable is not plugged into the wall</p>
+			<p>When you finished wiring the sensor, you can check if it works by bringing a metallic object near to it. If the led turns on, the sensor works, otherwise it doesn't or you didn't wire it correctly.</p>
+			<p>Now, you can work with the black cable, and in particular, you have to create a voltage divider that will supply a voltage lower than 5V, because in case something goes wrong, and the board pin receives 24V, it will be burned.<br />In my case I created a voltage divider with a common 10k resistor and a 47k one. If you have different resistors, you can make your own circuit, the important is that the output voltage is lower than 5V, which measure with a multimeter</p>
+			<img src="voltage divider.PNG">
+			<p>&nbsp;</p>
+			<p>After that, you will need use an NPN transistor, (I used a 2N2222A), which will work as a switch.<br />The board pins responsible of the Z axis endstop are:<br />* a pin that supplies a voltage of 5V and a current of about 0.6 mA<br />* a pin that receives the current of the first pin, just as an arduino pin set as INPUT</p>
+			<p>When the button of the endstop (normally closed) is pressed, the circuit is opened, the input pin detects it, and stops the motor.<br />You can reproduce this behavior with a transistor: when the sensor is not triggered, the current will flow in the base, and the transistor will behave as a closed switch (the input pin will receive 0.6 mA).<br />Instead, when the sensor is triggered by the alluminium bed or any other metallic object, the current will not flow in the base, and the transistor will work as an open switch (the input pin will not receive any current).<br />you can check the circuit:</p>
+			<img src="2nd circuit.png">
+			<p>&nbsp;</p>
+			<p><br />Personally, I tried to remove the mechanical endstop from the printer, but after some experiments, the sensor didn't trigger twice, and the nozzle crashed into the bed until i powered off the machine.<br />To prevent this, you can keep the mechanical endstop which will work in case the sensor won't.<br />To do that, you will need a female-to-female doupont cable of about 20 mm that you will split down in the middle.<br />Now, you can solder one cable to the one that goes to the base of the transistor and connect the other side to the "S" pin of the endstop.<br />The other cable must be soldered to the ground one, and the other side must be connected to the "G" pin of the endstop.<br />Now, when the button of the endstop is pressed by the printer, all the current will be shorted to the ground, instead of going to the base of the transistor, which will work as an open switch</p>
+			<img src="3rd circuit.png">
+			<br /><br />
+			<p>Simple wiring diagram:</p>
+			<br />
+			<img src="circuit.png"><br />
+			<p>That's all for the electrical part, you can now fix the sensor to the printer using a bracket.<br />If your sensor's thread is M12, you can print this one:<br /><a href="https://www.thingiverse.com/thing:4507029">https://www.thingiverse.com/thing:4507029</a></p>
+			<p>Once the sensor is fixed, you can start tuning Marlin 1.1.X firmware. In case you didn't flash a bootloader to the printer's board, you will have to do it.<br />There are plenty of tutorials on the Internet on how to burn a bootloader to the ender 3 board, so, just follow one of them.<br />First, you have to overwrite marlin stock configs with the ender 3 ones you can find here https://github.com/MarlinFirmware/Configurations<br />Here are the flags you have to edit/uncomment:</p>
+			<p>* X_BED_SIZE&nbsp; &nbsp;-&gt; in case you printed my bracket, set it to 210<br />* X_PROBE_OFFSET_FROM_EXTRUDER&nbsp; &nbsp;-&gt; in case you printed my bracket, set it to 42<br />* Y_PROBE_OFFSET_FROM_EXTRUDER&nbsp; &nbsp;-&gt; in case you printed my bracket, set it to 0<br />* Z_PROBE_OFFSET_FROM_EXTRUDER&nbsp; &nbsp;-&gt; in case you printed my bracket, set it to 0<br />* LEFT_PROBE_BED_POSITION&nbsp; &nbsp;-&gt; in case you printed my bracket, set it to 42<br />* MULTIPLE_PROBING 2&nbsp; &nbsp;-&gt; uncomment<br />* AUTO_BED_LEVELING_BILINEAR&nbsp; &nbsp;-&gt; uncomment<br />* RESTORE_LEVELING_AFTER_G28&nbsp; &nbsp;-&gt; uncomment<br />* RIGHT_PROBE_BED_POSITION (X_BED_SIZE - MIN_PROBE_EDGE)&nbsp; &nbsp;-&gt; uncomment<br />* FRONT_PROBE_BED_POSITION MIN_PROBE_EDGE&nbsp; &nbsp;-&gt; uncomment<br />* BACK_PROBE_BED_POSITION (Y_BED_SIZE - MIN_PROBE_EDGE)&nbsp; &nbsp;-&gt; uncomment<br />* Z_SAFE_HOMING&nbsp; &nbsp;-&gt; uncomment</p>
+			<p>After these changes, the firmware is probably bigger than 128kb, so, you can disable unneeded features such as ARC_SUPPORT or add custom compiler flags as explained here: <a href="https://thborges.github.io/blog/marlin/2019/01/07/reducing-marlin-binary-size.html">https://thborges.github.io/blog/marlin/2019/01/07/reducing-marlin-binary-size.html</a><br /><br /></p>
+			<p>Demonstration video:</p>
+			<center><iframe width="800" height="400" src="https://www.youtube.com/embed/yGYXDW_0rdU"></iframe></center>
+			<p><br />Issues can be reported here: <a href="https://github.com/steel71/steel71.github.io/issues">https://github.com/steel71/steel71.github.io/issues</a></p>
+			<p>You can also contact me at m.marcaccini01@gmail.com</p>
+		</div>
+	</body>
+</html>
