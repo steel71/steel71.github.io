@@ -1,0 +1,50 @@
+<!DOCTYPE html>
+<html>
+	<head>
+		<meta charset="UTF-8">
+		<title>Turn an old Android Phone into octoprint</title>
+		<meta name="description"content="Turn an old Android Phone into octoprint">
+		<meta name="viewport" content="width=device-width, initial-scale=1.0">
+		<link rel="stylesheet" href="https://maxcdn.bootstrapcdn.com/bootstrap/3.3.7/css/bootstrap.min.css">
+		<link href="../index.css" rel="stylesheet"> 
+		<link href="https://fonts.googleapis.com/css?family=Lato" rel="stylesheet"> 
+	</head>
+
+	<body>
+		<div id="header">
+			<div id="textbox">
+				<p class="aligncenter"><a href="../index.html">HOME</a></p>
+				<div class="resizeme" class="aligncenter">Turn an old Android Phone into octoprint</div>
+				<p class="alignright"></p>
+			</div>
+			<div style="clear: both;"></div>
+		</div>
+
+		<div class="projectbox">
+			<p>If you have a 3d printer and an old phone, you might want to follow this guide, and you won't have to waste money on Raspberries or OrangePIs and extra cameras</p>
+			<p>Phone requirements:<br />* It must be rooted.<br />* It must not be very old, let's say android 4.4 or higher<br />* It must support OTG. If it doesn't, you could try to search for a custom rom or a custom kernel that adds it.<br />* Kernel sources are needed, so, make sure they can be found. Some companies like MTK don't release kernel sources.</p>
+			<p>Other requirements:<br />* An OTG cable (if you don't have one, you can make it with a female usb port and a male micro usb one)<br />* A computer with a GNU/linux distro (a VM is good as well).</p>
+			<p>In this guide, octoprint will be installed in a nethunter chroot environment.</p>
+			<p>&nbsp;</p>
+			<h4 style="text-align: center;">Nethunter Installation</h4>
+			<p>First you have to build kali nethunter to the device where you want to install octoprint.<br />Nethunter repo can be found here: https://gitlab.com/kalilinux/nethunter/build-scripts/kali-nethunter-project<br />To build it, first clone or simply download the repo to you linux distro and cd to nethunter-installer dir.<br />Now, with build.py python script, you can build nethunter for your device; you can run "python build.py --help" to show the available options.<br />Make sure you build it with the correct arch and android version, for a generic device and without kernel.</p>
+			<p>After you get the zip, send it to your phone and flash it with twrp recovery.<br />When you boot the device, you should notice that some new apps are installed: the ones you need are NetHunter and NetHunter Terminal, but if you don't, install them manually from nethunter zip installer and reboot your device.<br />If you didn't include it in the installer, you will have to install a chroot environment by going to "NetHunter app -&gt; Kali Chroot Manager" and choosing to download a kalifs-full chroot.</p>
+			<p>&nbsp;</p>
+			<h4 style="text-align: center;">Octoprint Installation</h4>
+			<p>Now that the chroot is installed, go to nethunter terminal and select kali shell.<br />The steps to install octoprint are the same as https://community.octoprint.org/t/setting-up-octoprint-on-a-raspberry-pi-running-raspbian/2337<br />However, you have to make one change:<br />Since nethunter uses init scripts instead of systemd, you need to use (and configure the default one) these: https://github.com/OctoPrint/OctoPrint/tree/master/scripts (follow the README.md)<br />Finally, the service can be added to NetHunter app, so that it can be started when the device boots, so, open it and go to "Kali Services" and add a new service. Replace &lt;servicename&gt; with octoprint, add a service title like octoprint and check RunOnChrootStart boxNow set up octoprint. You can find plenty of guides on Internet to do that</p>
+			<p>&nbsp;</p>
+			<h4 style="text-align: center;">Adding printer board driver</h4>
+			<p>When you are done, and you try to connect to the printer, using an otg cable + a mini usb one connected to the printer, it probably won't work.<br />That is because you are missing the printer board drivers.<br />You can get the name of the driver by running dmesg from an androidsu nethunter therminal shell, after you connect the phone to the printer with the otg+micro usb cables.<br />The useful dmesg lines are like these:</p>
+			<img src="dmesg.png"><br />
+			<p>To know what kernel config/s you need to add to your device ones, just make a search on google.<br />In my case I only had to enable CONFIG_USB_SERIAL_FTDI_SIO<br />Kernel configs can be added via menuconfig or manually by adding CONFIG_xxxxx=y to your deivce defconfig file <br />When you're done, build the kernel and add it to an Anykernel zip.<br />Personally, I used to build lineageos for my device, so, I had its sources and I simply built a new boot.img instead.<br />After you install the new kernel, you should be able to connect octoprint to your 3d printer, while if you can't, it means you didn't add the right kernel configs related to your printer board drivers</p>
+			<p>&nbsp;</p>
+			<h4 style="text-align: center;">Camera setup</h4>
+			<p>If you want to use your device camera along with octoprint, just download an app called DroidCam on Google Play.<br />The app will tell you what website you need to add to octoprint, which is http://ip:port/video<br />You may want to use octoprint even when you are outside, and in order to do that, you can simply open your router web page (usually 192.168.1.1) and enable DMZ on your phone local ip (192.168.xxx.xxx).</p>
+			<p>That's all, the final step is to model and print a phone holder for your device.<br />I created this one for my Galaxy A5, whose camera will always follow the extruder (phone holder fixed to the Z axis) <a href="https://www.thingiverse.com/thing:4540954">https://www.thingiverse.com/thing:4540954</a></p>
+			<img src="setup2.jpg" style="width:400px;height:500px;">
+			<img src="octoprint.png" style="width:400px;height:400px;">
+			<p><br />Issues can be reported here: <a href="https://github.com/steel71/steel71.github.io/issues">https://github.com/steel71/steel71.github.io/issues</a></p>
+			<p>You can also contact me at m.marcaccini01@gmail.com</p>
+		</div>
+	</body>
+</html>
